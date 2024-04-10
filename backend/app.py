@@ -3,6 +3,8 @@ from flask_cors import CORS
 from bs4 import BeautifulSoup
 import requests
 import json
+import pickle
+import jsonify
 
 
 app = Flask(__name__)
@@ -12,6 +14,29 @@ HEADERS = {
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
     "accept-Language": "en-US en;q=0.5"
 }
+
+rf_model = pickle.load(open('./model/rf.pkl', 'rb'))
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    amazon_data = request.json
+    def extract_reviews(product):
+        return [review['content'] for review in product['products_review']], [float(review['stars'].split()[0]) for review in product['products_review']]
+    
+    correct_predictions = []
+    for product in amazon_data:
+        reviews, true_ratings = extract_reviews(product)
+        predictions = rf_model.predict(reviews)
+        for idx, review in enumerate(reviews):
+            if predictions[idx] == true_ratings[idx]:
+                correct_predictions.append({
+                    "product_title": product["product_title"],
+                    "review_content": reviews[idx],
+                    "true_rating": true_ratings[idx]
+                })
+    
+    return jsonify(correct_predictions)
+
 
 def get_data_from_amazon(url,n):
     amazon_data= []
