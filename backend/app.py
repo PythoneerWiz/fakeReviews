@@ -101,6 +101,7 @@ def get_data_from_flipkart(url,n):
 
 
 
+@app.route("/detect" , methods=["GET,POST"])
 
         
 
