@@ -15,13 +15,17 @@ const Search = () => {
       .get(url)
       .then((res) => {
         setData(res.data);
+        // Extract and set correct reviews
         const reviews = res.data.amazon.concat(res.data.flipkart);
         console.log(reviews);
         setCorrectReviews(reviews);
+
+        // Map reviews into a JSON object with ratings and content
         const reviewsData = reviews.map((review) => ({
           rating: review.product_rating,
           content: review.products_review.map((rev) => rev.content),
         }));
+
         const predictUrl = `http://127.0.0.1:5000/predict`;
         axios
           .post(predictUrl, { reviews: reviewsData, category, rating })

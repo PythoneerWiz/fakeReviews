@@ -5,6 +5,8 @@ import requests
 import json
 import pickle
 import jsonify
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
 
 
 app = Flask(__name__)
@@ -14,28 +16,27 @@ HEADERS = {
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
     "accept-Language": "en-US en;q=0.5"
 }
+with open('./model/rf.pkl', 'rb') as file:
+    model = pickle.load(file)
+class ReviewData:
+    def __init__(self, category, rating, label, text):
+        self.category = "Electronics_5"
+        self.rating = rating
+        self.label = label
+        self.text = text
+@app.route('/predict', methods=['POST'])
+def predict_reviews():
+    data = request.json
+    reviews = data['reviews']
+    category = data['category']
+    rating = data['rating']
+    predictions = []
+    for review_text in reviews:
+        review_data = ReviewData(category, rating, "", review_text)
+        prediction = model.predict([f'{review_data.text} {review_data.category} {review_data.rating}'])[0]
+        predictions.append({'review': review_data.text, 'category': review_data.category, 'rating': review_data.rating, 'prediction': prediction})
 
-rf_model = pickle.load(open('./model/rf.pkl', 'rb'))
-
-@app.route("/predict", methods=["POST"])
-def predict():
-    amazon_data = request.json
-    def extract_reviews(product):
-        return [review['content'] for review in product['products_review']], [float(review['stars'].split()[0]) for review in product['products_review']]
-    
-    correct_predictions = []
-    for product in amazon_data:
-        reviews, true_ratings = extract_reviews(product)
-        predictions = rf_model.predict(reviews)
-        for idx, review in enumerate(reviews):
-            if predictions[idx] == true_ratings[idx]:
-                correct_predictions.append({
-                    "product_title": product["product_title"],
-                    "review_content": reviews[idx],
-                    "true_rating": true_ratings[idx]
-                })
-    
-    return jsonify(correct_predictions)
+    return jsonify(predictions)
 
 
 def get_data_from_amazon(url,n):
