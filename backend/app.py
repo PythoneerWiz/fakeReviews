@@ -84,23 +84,34 @@ def get_data_from_flipkart(url,n):
     flipkart_data= []
     r = requests.get(url,headers=HEADERS)
     soup = BeautifulSoup(r.content,"html.parser")
-    links = soup.find_all("a",attrs={"class": "_1fQZEK"})
+    links = soup.find_all("a",attrs={"class": "CGtC98"})
+
     while n!=0:     
         link_variable = links[n].get("href")
         product_link = "https://www.flipkart.com" + link_variable
+        print("product_link",product_link)
         new_r = requests.get(product_link,headers=HEADERS)
         new_soup = BeautifulSoup(new_r.content,'html.parser')
-        title_tag = new_soup.find("span", attrs={"class" : "B_NuCI"})
-        product_title = title_tag.text.strip()
-        product_image = new_soup.find("img",attrs={"class":"_396cs4 _2amPTt _3qGmMb"}).get("src").strip()
-        product_price = new_soup.find("div",attrs={"class":"_30jeq3 _16Jk6d"}).text
-        product_rating = new_soup.find("div",attrs={"class":"_2d4LTz"}).text.strip()
-        products_review = new_soup.find_all("div",attrs={"class":"col _2wzgFH"})
+        product_title = new_soup.find("span", attrs={"class" : "VU-ZEz"}).text.strip()
+        print("product_title",product_title)
+        product_image = new_soup.find("img",attrs={"class":"DByuf4 IZexXJ jLEJ7H"}).get("src").strip()
+        print("p-image",product_image)
+        product_price = new_soup.find("div",attrs={"class":"Nx9bqj CxhGGd"}).text
+        print("p-price",product_price)
+        product_rating = new_soup.find("div",attrs={"class":"ipqd2A"}).text.strip()
+        print("product-review",product_rating)
+        products_review = new_soup.find_all("div",attrs={"class":"col EPCmJX"})
         all_reviews = []
         for reviews in products_review:
-            review_profile_name = reviews.find("p", attrs={"class": "_2V5EHH"}).text
-            review_s = reviews.find("div", attrs={"class": "_1BLPMq"}).text
-            review_content = reviews.find("div", attrs={"class": "t-ZTKy"}).text.replace("READ MORE", "")
+            print(reviews)
+            review_profile_name = reviews.find("p", attrs={"class": "z9E0IG"}).text
+            review_s=""
+            print("review_profile",review_profile_name)
+            if type(reviews.find("div", attrs={"class": "XQDdHH Ga3i8K"})) is type(None):
+                review_s = reviews.find("div", attrs={"class": "XQDdHH Js30Fc Ga3i8K"}).text
+            else:
+                review_s = reviews.find("div", attrs={"class": "XQDdHH Ga3i8K"}).text
+            review_content = reviews.find("div", attrs={"class": "ZmyHeo"}).text.replace("READ MORE", "")
             review_date = "2 months ago"  # Replace with actual date extraction if available
 
             # Create review dictionary
@@ -146,7 +157,9 @@ def members():
 
 @app.route("/api/abc", methods=["GET"])
 def getdata():
+    print("the main function has been started")
     param = request.args.get("q")
+    print("param", param)
     flipkart_url = f"https://www.flipkart.com/search?q={param}"
     amazon_url = f"https://www.amazon.in/s?k={param}"
     flipkart_data = get_data_from_flipkart(flipkart_url,3)

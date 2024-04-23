@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import * as Dialog from "@radix-ui/react-dialog";
+import Analysis from "./Analysis";
 
 const Search = () => {
   const [data, setData] = useState({});
@@ -17,7 +19,7 @@ const Search = () => {
         setData(res.data);
         // Extract and set correct reviews
         const reviews = res.data.amazon.concat(res.data.flipkart);
-        console.log(reviews);
+        console.log(JSON.stringify(reviews));
         setCorrectReviews(reviews);
 
         // Map reviews into a JSON object with ratings and content
@@ -40,6 +42,8 @@ const Search = () => {
         console.log(err);
       });
   };
+
+
 
   return (
     <div id="search" className="w-full flex flex-col items-center mt-20 gap-10">
@@ -64,27 +68,67 @@ const Search = () => {
         {correctReviews.map((review, index) => (
           <div
             key={index}
-            className="max-w-xs bg-white rounded-xl overflow-hidden shadow-md"
+            className="max-w-xs bg-white rounded-xl overflow-hidden shadow-md flex flex-col "
           >
-            <img className="w-full" src={review.product_image} alt="Product" />
-            <div className="px-6 py-4">
-              <div className="font-bold text-xl mb-2">
-                {review.product_title}
+            <a
+              className="flex flex-col items-center"
+              href={review.product_link}
+              target="_blank"
+            >
+              <img
+                className="w-full"
+                src={review.product_image}
+                alt="Product"
+              />
+              <div className="px-6 py-4">
+                <div className="font-bold text-xl mb-2">
+                  {review.product_title}
+                </div>
               </div>
-              {review.products_review.map((rev, i) => (
-                <p key={i} className="text-gray-700 text-base">
-                  {rev.content}
-                </p>
-              ))}
-            </div>
-            <div className="px-6 pt-4 pb-2">
-              <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2">
-                Rating: {review.product_rating}
-              </span>
-            </div>
+              <div className="px-6 pt-4 pb-2">
+                <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 ">
+                  Price: {review.product_price}
+                </span>
+              </div>
+              <div className="px-6 pt-4 pb-2">
+                <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2">
+                  Rating: {review.product_rating}
+                </span>
+              </div>
+            </a>
+            <Dialog.Root>
+              <Dialog.Trigger>
+                <button className="w-48 bg-orange-500 text-white self-center my-4 rounded-sm py-2">
+                  Reviews
+                </button>
+              </Dialog.Trigger>
+
+              <Dialog.Portal>
+                <Dialog.Overlay className="fixed inset-0 bg-black/50" />
+                <Dialog.Content className="fixed top-1/2 left-1/2 rounded-md bg-white p-8 shadow-md -translate-x-1/2 -translate-y-1/2 h-1/2 overflow-auto">
+                  <h2>Reviews - {review.products_review.length}</h2>
+                  {review.products_review.map((rev, i) => (
+                    <p
+                      key={i}
+                      className="text-white text-base bg-orange-500 mt-2 p-5 rounded-sm "
+                    >
+                      <b>By- {rev.name}</b>
+                      <br />
+                      <b>Stars- {rev.stars}</b>
+                      <br />
+                      {rev.content}
+                      <br />
+                      <b>{rev.date}</b>
+                      <br />
+                    </p>
+                  ))}
+                </Dialog.Content>
+              </Dialog.Portal>
+            </Dialog.Root>
           </div>
         ))}
       </div>
+      <Analysis jsondata={correctReviews}/>
     </div>
   );
 };
